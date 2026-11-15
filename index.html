@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel de Pedidos - Cafeteria</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f4f7f6; color: #333; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { color: #8B4513; }
+        input, button { padding: 10px; margin: 5px 0; font-size: 16px; }
+        input { width: calc(100% - 22px); }
+        button { background: #8B4513; color: white; border: none; cursor: pointer; border-radius: 4px; width: 100%; }
+        button:hover { background: #a0522d; }
+        #status { font-weight: bold; margin-bottom: 15px; }
+        .conectado { color: green; }
+        .desconectado { color: red; }
+        ul { list-style-type: none; padding: 0; }
+        li { background: #fff8dc; margin: 8px 0; padding: 10px; border-left: 5px solid #deb887; border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>☕ Painel da Cafeteria (WebSocket)</h2>
+    <p>Status: <span id="status" class="desconectado">Desconectado</span></p>
+
+    <div id="painel-envio">
+        <h3>Fazer Pedido (Caixa)</h3>
+        <input type="text" id="nomeCliente" placeholder="Seu Nome (ex: Beatriz)" value="Beatriz">
+        <input type="text" id="itemPedido" placeholder="Item do pedido (ex: Cappuccino e Pão de Queijo)">
+        <button onclick="enviarPedido()">Enviar Pedido</button>
+    </div>
+
+    <h3>Pedidos em Tempo Real (Cozinha / Telão)</h3>
+    <ul id="listaPedidos">
+        <em>Nenhum pedido recebido ainda...</em>
+    </ul>
+</div>
+
+<script>
+    const ws = new WebSocket("ws://localhost:8765");
+    const statusEl = document.getElementById("status");
+    const listaEl = document.getElementById("listaPedidos");
+    let primeiroItem = true;
+
+    ws.onopen = () => {
+        statusEl.textContent = "Conectado";
+        statusEl.className = "conectado";
+        console.log("Conectado ao servidor WebSocket.");
+    };
+
+    ws.onclose = () => {
+        statusEl.textContent = "Desconectado";
+        statusEl.className = "desconectado";
+        console.log("Conexão encerrada.");
+    };
+
+    ws.onmessage = (event) => {
+        const dados = JSON.parse(event.data);
+        
+        if (primeiroItem) {
+            listaEl.innerHTML = "";
+            primeiroItem = false;
+        }
+
+        const li = document.createElement("li");
+        li.innerHTML = `<strong>${dados.cliente}</strong> pediu: <em>${dados.item}</em>`;
+        listaEl.prepend(li);
+    };
+
+    function enviarPedido() {
+        const cliente = document.getElementById("nomeCliente").value;
+        const item = document.getElementById("itemPedido").value;
+
+        if (!item) {
+            alert("Digite o item do pedido!");
+            return;
+        }
+
+        const payload = JSON.stringify({ cliente, item });
+        ws.send(payload);
+        document.getElementById("itemPedido").value = "";
+    }
+</script>
+
+</body>
+</html>
