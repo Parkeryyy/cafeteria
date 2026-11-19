@@ -35,8 +35,8 @@ async def gerenciador_conexao(websocket):
         logging.info(f"Conexão encerrada. Total de clientes restantes: {len(clientes_conectados)}")
 
 async def main():
-    async with serve(gerenciador_conexao, "localhost", 8765):
-        logging.info("Servidor WebSocket iniciado em ws://localhost:8765")
+    async with serve(gerenciador_conexao, "0.0.0.0", 8765):
+        logging.info("Servidor WebSocket iniciado em ws://0.0.0.0:8765")
         await asyncio.Future()
 
 if __name__ == "__main__":
