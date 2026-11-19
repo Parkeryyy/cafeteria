@@ -26,7 +26,7 @@
 
     <div id="painel-envio">
         <h3>Fazer Pedido (Caixa)</h3>
-        <input type="text" id="nomeCliente" placeholder="Seu Nome (ex: Beatriz)" value="Beatriz">
+        <input type="text" id="nomeCliente" placeholder="Seu Nome">
         <input type="text" id="itemPedido" placeholder="Item do pedido (ex: Cappuccino e Pão de Queijo)">
         <button onclick="enviarPedido()">Enviar Pedido</button>
     </div>
@@ -38,7 +38,18 @@
 </div>
 
 <script>
-    const ws = new WebSocket("ws://localhost:8765");
+    function obterUrlWebSocket() {
+        const host = window.location.hostname;
+
+        if (host.endsWith(".app.github.dev") || host.endsWith(".github.dev")) {
+            const wsHost = host.replace(/-\d+\./, "-8765.");
+            return `wss://${wsHost}`;
+        }
+
+        return "ws://localhost:8765";
+    }
+
+    const ws = new WebSocket(obterUrlWebSocket());
     const statusEl = document.getElementById("status");
     const listaEl = document.getElementById("listaPedidos");
     let primeiroItem = true;
@@ -69,7 +80,7 @@
     };
 
     function enviarPedido() {
-        const cliente = document.getElementById("nomeCliente").value;
+        const cliente = document.getElementById("nomeCliente").value || "Cliente";
         const item = document.getElementById("itemPedido").value;
 
         if (!item) {
